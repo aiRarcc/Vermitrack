@@ -382,15 +382,14 @@ void valuesLCD(float lcdtem, float lcdhum, float lcdsT, float lcdsH, float lcdsP
   //soilHumidity, soilTemperature, soilPH, nitrogen, potassium, phosphorus;
   //void sendData(float tem, float hum, float sT, float sH, float sPH, float nit, float phos, float pot)
   //sendData(temperature, humidity, soilHumidity, soilTemperature, soilPH, nitrogen, potassium, phosphorus);
-  String lcd_temperature =  String(lcdtem);
-  String lcd_humidity =  String(lcdhum); 
-  String lcd_soiltemp =  String(lcdsT / 10.0);
-  String lcd_soilhum =  String(lcdsH / 10.0); 
-  float lcd_soilph =  round(lcdsPH /10.0 * 10.0) / 10.0;
-  //float moistpct = round(moisturePercentage * 10.0) / 10.0;
-  String lcd_nitrogen =  String(lcdnit); 
-  String lcd_phosphorus =  String(lcdphos);
-  String lcd_potassium =  String(lcdpot);
+  String lcd_temperature = String(lcdtem, 1); // 1 decimal place
+  String lcd_humidity = String(lcdhum, 1); // 1 decimal place
+  String lcd_soiltemp = String(lcdsT / 10.0, 1); // 1 decimal place
+  String lcd_soilhum = String(lcdsH / 10.0, 1); // 1 decimal place
+  String lcd_soilph = String(lcdsPH / 10.0, 1); // 1 decimal place
+  String lcd_nitrogen = String(lcdnit, 1); // 1 decimal place
+  String lcd_phosphorus = String(lcdphos, 1); // 1 decimal place
+  String lcd_potassium = String(lcdpot, 1); // 1 decimal place
   lcd.clear();
   lcd.setCursor(0,0);
   lcd.print("   Chamber ");
@@ -406,6 +405,8 @@ void valuesLCD(float lcdtem, float lcdhum, float lcdsT, float lcdsH, float lcdsP
   lcd.setCursor(0,0);
   lcd.print("Soil Status ");
   lcd.setCursor(0,1);
+  lcd.print("                "); // Clear the second line
+  lcd.setCursor(0,1);
   lcd.print("Temp: ");
   lcd.print(lcd_soiltemp + " C");
   delay(5000);
@@ -415,7 +416,7 @@ void valuesLCD(float lcdtem, float lcdhum, float lcdsT, float lcdsH, float lcdsP
   delay(5000);
   lcd.setCursor(0,1);
   lcd.print("PH: ");
-  lcd.print(lcd_soilph);
+  lcd.print(lcd_soilph + "            ");
   delay(5000);
   lcd.setCursor(0,1);
   lcd.print("N: ");
@@ -429,6 +430,5 @@ void valuesLCD(float lcdtem, float lcdhum, float lcdsT, float lcdsH, float lcdsP
   lcd.print("K: ");
   lcd.print(lcd_potassium+ " mg/kg");
   delay(5000);
-
 
 }
