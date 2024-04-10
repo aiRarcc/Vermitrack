@@ -1,0 +1,98 @@
+function doGet(e) { 
+  Logger.log( JSON.stringify(e) );
+  var result = 'Ok';
+  if (e.parameter == 'undefined') {
+    result = 'No Parameters';
+  } else {
+    var sheet_id = '1FNUUmyPGs-KlCAufI_2bj-Dtx0Qr7LM88X9pWbO6TNs'; // Spreadsheet ID
+    var sheet = SpreadsheetApp.openById(sheet_id).getActiveSheet();
+    var newRow = sheet.getLastRow() + 1; 
+    var rowData = [];
+    var Curr_Date = new Date();
+    rowData[0] = Curr_Date; // Date in column A
+    var Curr_Hour = Curr_Date.getHours();
+    var Curr_Minute = Curr_Date.getMinutes();
+    var Curr_Second = Curr_Date.getSeconds();
+    var Curr_Time = (Curr_Hour % 12 || 12) + ':' + (Curr_Minute < 10 ? '0' + Curr_Minute : Curr_Minute) + ':' + (Curr_Second < 10 ? '0' + Curr_Second : Curr_Second);
+    Curr_Time += Curr_Hour >= 12 ? ' PM' : ' AM'; // Append AM or PM based on current hour
+    rowData[1] = Curr_Time; // Time in column B
+    for (var param in e.parameter) {
+      Logger.log('In for loop, param=' + param);
+      var value = stripQuotes(e.parameter[param]);
+      Logger.log(param + ':' + e.parameter[param]);
+      switch (param) {
+        case 'temperature':
+          rowData[2] = value + '°C'; // Temperature in column C
+          result = 'Temperature Written on column C'; 
+          break;
+        case 'humidity':
+          rowData[3] = value + '%'; // Humidity in column D
+          result += ' ,Humidity Written on column D'; 
+          break;
+        case 'soiltemp':
+          rowData[4] = value + '°C';
+          result += ' ,SoilTemp Written on column E';
+          break;
+        case 'soilhumid':
+          rowData[5] = value + '%';
+          result += ' ,SoilHumid Written on column F';
+          break;
+        case 'soilph':
+          if (value < 5.5) {
+            phStatus = 'acidic';
+          } else if (value > 7.6) {
+            phStatus = 'alkaline';
+          } else {
+            phStatus = 'neutral';
+          }
+          rowData[6] = value + ' - ' + phStatus;
+          result += ' ,SoilPH Written on column G (' + value + ' - ' + phStatus + ')';
+          break;
+        case 'nitrogen':
+          rowData[7] = value + 'mg/kg';
+          result += ' ,Nitrogen Written on column H';
+          break;
+        case 'phosphorus':
+          rowData[8] = value + 'mg/kg';
+          result += ' ,Phosphorus Written on column I';
+          break;
+        case 'potassium':
+          rowData[9] = value + 'mg/kg';
+          result += ' ,Potassium Written on column J';
+          break;
+        case 'soilmoisture':
+          rowData[10] = value + '%';
+          result += ' ,Soil Moisture Written on column K';
+          break;
+        case 'fan':
+          rowData[11] = value === '1' ? 'on' : 'off';
+          result += ' ,fan  Written on column L';
+          break;
+        case 'light':
+          rowData[12] = value === '1' ? 'on' : 'off';
+          result += ' ,light Written on column M';
+          break;
+        case 'sprinkler':
+          rowData[13] = value === '1' ? 'on' : 'off';
+          result += ' ,sprinkler Written on column M';
+          break;
+        case 'valve':
+          rowData[14] = value === '1' ? 'on' : 'off';
+          result += ' ,valve Written on column M';
+          break;
+        default:
+          result = "unsupported parameter";
+      }
+    } 
+    Logger.log(JSON.stringify(rowData));
+    var newRange = sheet.getRange(newRow, 1, 1, rowData.length);
+    newRange.setValues([rowData]);
+  }
+  return ContentService.createTextOutput(result);
+}
+
+function stripQuotes(value) {
+  return value.replace(/^["']|['"]$/g, "");
+}
+
+
