@@ -1,0 +1,231 @@
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:percent_indicator/circular_percent_indicator.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'dart:async';
+
+class TempHumi extends StatelessWidget {
+  const TempHumi({super.key});
+
+  // Stream for fetching temperature and humidity data
+  Stream<Map<String, double?>> fetchTempHumiData() async* {
+    final url =
+        Uri.https('verms-79d98-default-rtdb.firebaseio.com', 'DHT_11.json');
+
+    while (true) {
+      try {
+        final response = await http.get(url);
+        if (response.statusCode == 200) {
+          final jsonData = json.decode(response.body);
+          double temperatureValue = jsonData['Temperature'] /
+              100; // Adjust based on your data structure
+          double humidityValue =
+              jsonData['Humidity'] / 100; // Adjust based on your data structure
+
+          yield {
+            'temperature': temperatureValue,
+            'humidity': humidityValue,
+          };
+        } else {
+          yield {
+            'temperature': 0, // Use null instead of -1
+            'humidity': 0 // Use null instead of -1
+          };
+        }
+      } catch (e) {
+        yield {
+          'temperature': 0, // Use null instead of -1
+          'humidity': 0 // Use null instead of -1
+        };
+      }
+      await Future.delayed(
+          const Duration(seconds: 5)); // Adjust the delay as needed
+    }
+  }
+
+  Color currentTColor(double? temperatureValue) {
+    if (temperatureValue == null)
+      return Colors.grey; // Default color if value is null
+    if (temperatureValue >= .28) {
+      return Colors.red;
+    } else if (temperatureValue <= .10) {
+      return Colors.blue;
+    } else {
+      return Colors.green;
+    }
+  }
+
+  Color currentHColor(double? humidityValue) {
+    if (humidityValue == null)
+      return Colors.grey; // Default color if value is null
+    if (humidityValue <= .55) {
+      return Colors.red;
+    } else if (humidityValue >= .90) {
+      return Colors.blue;
+    } else {
+      return Colors.green;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    double displayWidth = MediaQuery.of(context).size.width;
+
+    return StreamBuilder<Map<String, double?>>(
+      stream:
+          fetchTempHumiData(), // Listen to the temperature and humidity stream
+      builder: (context, snapshot) {
+        double? temperatureValue;
+        double? humidityValue;
+
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          // Waiting for data
+        } else if (snapshot.hasError) {
+          // Handle error
+        } else if (snapshot.hasData) {
+          temperatureValue = snapshot.data!['temperature'];
+          humidityValue = snapshot.data!['humidity'];
+        }
+
+        String temperatureDisplay = temperatureValue != null
+            ? '${(temperatureValue * 100).toStringAsFixed(1)} °C'
+            : ''; // Show blank if null
+        String humidityDisplay = humidityValue != null
+            ? '${(humidityValue * 100).toStringAsFixed(1)} %'
+            : ''; // Show blank if null
+
+        return Container(
+          padding: const EdgeInsets.all(10.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                width: displayWidth * .43,
+                height: displayWidth * .47,
+                decoration: BoxDecoration(
+                  color: const Color(0xffffffff).withOpacity(.55),
+                  border: Border.all(
+                    color: const Color(0xff013e3e),
+                  ),
+                  borderRadius: const BorderRadius.all(
+                    Radius.circular(25),
+                  ),
+                ),
+                child: Column(
+                  mainAxisAlignment:
+                      MainAxisAlignment.spaceAround, // Space evenly
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          'lib/uicons/temp.png',
+                          height: displayWidth * .1,
+                        ),
+                        SizedBox(width: 8), // Space between icon and text
+                        Text(
+                          "Temperature",
+                          style: GoogleFonts.nunito(
+                            color: const Color(0xff013e3e),
+                            fontSize: displayWidth * .04,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(
+                        height: displayWidth *
+                            .02), // Added space before the indicator
+                    CircularPercentIndicator(
+                      animation: true,
+                      animateFromLastPercent: true,
+                      animationDuration: 1000,
+                      backgroundColor: Colors.transparent,
+                      radius: displayWidth * .13,
+                      lineWidth: displayWidth * .04,
+                      progressColor: currentTColor(temperatureValue),
+                      startAngle: 230,
+                      circularStrokeCap: CircularStrokeCap.round,
+                      percent: temperatureValue ?? 0.0, // Use 0.0 if null
+                      center: Text(
+                        temperatureDisplay,
+                        style: TextStyle(
+                          fontSize: displayWidth * .04,
+                          fontWeight: FontWeight.w500,
+                          color: const Color(0xff013e3e),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.all(10),
+                width: displayWidth * .43,
+                height: displayWidth * .47,
+                decoration: BoxDecoration(
+                  color: const Color(0xffffffff).withOpacity(.55),
+                  border: Border.all(
+                    color: const Color(0xff013e3e),
+                  ),
+                  borderRadius: const BorderRadius.all(
+                    Radius.circular(25),
+                  ),
+                ),
+                child: Column(
+                  mainAxisAlignment:
+                      MainAxisAlignment.spaceAround, // Space evenly
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          'lib/uicons/humidity.png',
+                          height: displayWidth * .1,
+                        ),
+                        SizedBox(width: 8), // Space between icon and text
+                        Text(
+                          "Humidity",
+                          style: GoogleFonts.nunito(
+                            color: const Color(0xff013e3e),
+                            fontSize: displayWidth * .04,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(
+                        height: displayWidth *
+                            .02), // Added space before the indicator
+                    CircularPercentIndicator(
+                      animation: true,
+                      animateFromLastPercent: true,
+                      animationDuration: 1000,
+                      backgroundColor: Colors.transparent,
+                      radius: displayWidth * .13,
+                      lineWidth: displayWidth * .04,
+                      progressColor: currentHColor(humidityValue),
+                      startAngle: 230,
+                      circularStrokeCap: CircularStrokeCap.round,
+                      percent: humidityValue ?? 0.0, // Use 0.0 if null
+                      center: Text(
+                        humidityDisplay,
+                        style: TextStyle(
+                          fontSize: displayWidth * .04,
+                          fontWeight: FontWeight.w500,
+                          color: const Color(0xff013e3e),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
